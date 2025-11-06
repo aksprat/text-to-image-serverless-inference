@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>DigitalOcean Serverless Inference</title>
+
+    <!-- Link to external stylesheet -->
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>AI Image Generator using Fal Model</h1>
+        
+        <div class="input-group">
+            <textarea 
+                id="prompt" 
+                placeholder="Describe the image you want to generate... (e.g., 'A serene mountain landscape at sunset with a crystal clear lake reflecting the orange sky')"
+            ></textarea>
+        </div>
+
+        <div class="button-group">
+            <button class="btn" id="generateBtn">🎨 Generate Image</button>
+            <button class="btn btn-secondary" id="uploadBtn" disabled>☁️ Save to Cloud</button>
+        </div>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p id="loadingText">Generating your amazing image...</p>
+        </div>
+
+        <div class="message" id="message"></div>
+
+        <div class="image-container" id="imageContainer">
+            <img class="generated-image" id="generatedImage" alt="Generated Image">
+            <div class="download-group">
+                <a class="download-btn" id="downloadBtn" download="generated-image.png">📥 Download Image</a>
+            </div>
+            <div class="url-display" id="urlDisplay" style="display: none;"></div>
+        </div>
+    </div>
+
+    <!-- External JS (moved from inline script) -->
+    <script src="/static/app.js"></script>
+</body>
+</html>

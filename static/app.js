@@ -59,6 +59,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 body: JSON.stringify({ prompt })
             });
 
+            // If success (200-level), read as blob and show image
             if (response.ok) {
                 const blob = await response.blob();
                 currentImageBlob = blob;
@@ -72,13 +73,36 @@ document.addEventListener('DOMContentLoaded', () => {
                 uploadBtn.disabled = false;
                 showMessage('Image generated successfully! 🎉');
             } else {
+                // Defensive: clone the response BEFORE trying to read different representations
+                const clone = response.clone();
                 let errorText = 'Unknown error';
+
+                // Decide parsing strategy by Content-Type header if present
+                const ct = response.headers.get('content-type') || '';
                 try {
-                    const errorData = await response.json();
-                    errorText = errorData.error || JSON.stringify(errorData);
+                    if (ct.includes('application/json')) {
+                        const errorData = await response.json();
+                        errorText = errorData.error || JSON.stringify(errorData);
+                    } else {
+                        // Try to parse JSON first (some servers return JSON with different CT),
+                        // but if it fails, use the clone to read text without re-consuming.
+                        try {
+                            const maybeJson = await response.json();
+                            errorText = maybeJson.error || JSON.stringify(maybeJson);
+                        } catch (e) {
+                            // use the clone to read text safely (clone wasn't consumed)
+                            errorText = await clone.text();
+                        }
+                    }
                 } catch (e) {
-                    errorText = await response.text();
+                    // last fallback using clone
+                    try {
+                        errorText = await clone.text();
+                    } catch (_ignored) {
+                        errorText = `HTTP ${response.status} ${response.statusText}`;
+                    }
                 }
+
                 showMessage(`Error: ${errorText}`, 'error');
             }
         } catch (error) {
@@ -105,13 +129,28 @@ document.addEventListener('DOMContentLoaded', () => {
                 body: JSON.stringify({ prompt: currentPrompt })
             });
 
-            const data = await response.json();
+            // Defensive parsing: check Content-Type first, or use clone
+            const ct = response.headers.get('content-type') || '';
+            const clone = response.clone();
 
-            if (response.ok && data.success) {
+            let data;
+            if (ct.includes('application/json')) {
+                data = await response.json();
+            } else {
+                try {
+                    data = await response.json();
+                } catch (e) {
+                    // fallback: try reading text and try to parse
+                    const text = await clone.text();
+                    try { data = JSON.parse(text); } catch (_) { data = { error: text }; }
+                }
+            }
+
+            if (response.ok && data && data.success) {
                 showMessage('Image uploaded successfully to DigitalOcean Spaces! 🎉');
                 urlDisplay.innerHTML = `
                     <strong>Public URL:</strong><br>
-                    <a href="${data.url}" target="_blank">${data.url}</a>
+                    <a href="${data.url}" target="_blank" rel="noopener">${data.url}</a>
                 `;
                 urlDisplay.style.display = 'block';
             } else {

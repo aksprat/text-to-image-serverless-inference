@@ -89,19 +89,21 @@ def start_async_inference(model_id: str, input_payload: dict, tags: list = None)
     if tags:
         body["tags"] = tags
 
-    resp = requests.post(f"{DO_INFERENCE_BASE}/async-invoke", headers=DO_INFERENCE_HEADERS, json=body, timeout=30)
+    # DO_INFERENCE_BASE already points to /v1/async-invoke, so POST there
+    resp = requests.post(f"{DO_INFERENCE_BASE}", headers=DO_INFERENCE_HEADERS, json=body, timeout=30)
     resp.raise_for_status()
     return resp.json()
 
 def get_job_status(request_id: str):
     """Check status of async job."""
-    resp = requests.get(f"{DO_INFERENCE_BASE}/async-invoke/{request_id}/status", headers=DO_INFERENCE_HEADERS, timeout=10)
+    # Use the request id path under the base URL
+    resp = requests.get(f"{DO_INFERENCE_BASE}/{request_id}/status", headers=DO_INFERENCE_HEADERS, timeout=10)
     resp.raise_for_status()
     return resp.json()
 
 def get_job_result(request_id: str):
     """Fetch the final job result."""
-    resp = requests.get(f"{DO_INFERENCE_BASE}/async-invoke/{request_id}", headers=DO_INFERENCE_HEADERS, timeout=60)
+    resp = requests.get(f"{DO_INFERENCE_BASE}/{request_id}", headers=DO_INFERENCE_HEADERS, timeout=60)
     resp.raise_for_status()
     return resp.json()
 

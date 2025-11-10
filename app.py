@@ -13,7 +13,7 @@ from botocore.exceptions import NoCredentialsError, ClientError
 app = Flask(__name__, static_folder="static", template_folder="static")
 
 # --- Config / Env ---
-DO_INFERENCE_BASE = "https://inference.do-ai.run/v1"
+DO_INFERENCE_BASE = "https://inference.do-ai.run/v1/async-invoke"
 DO_MODEL_ACCESS_KEY = os.getenv("DO_MODEL_ACCESS_KEY")  # Required
 if not DO_MODEL_ACCESS_KEY:
     # don't raise here so app can still run in dev, but warn
